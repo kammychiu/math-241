@@ -1,0 +1,183 @@
+---
+title: "hw_5_logit"
+author: "Kammy Chiu"
+date: "April 4, 2017"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+library(readr)
+library(ISLR)
+```
+### Introduction
+The goal of this project is to build a model such that we can make inferences about the association between age and the probability of a registered voter voting. After tidying a random sample of the Oregon Voter data, I partitioned the data set into a training set and a testing test in order to assess the validity of the relationships found with the training set. Four models were used in this analysis.
+```{r load data, include=T}
+set.seed(87)
+voter_sample <- read_csv("data/or_voter.csv") %>%
+  sample_n(200000)
+
+voter_tidy <- voter_sample %>%
+  select(VOTER_ID, BIRTH_DATE.x,PARTY_CODE,
+         COUNTY.x, `11/08/2016`:`05/16/2006`) %>%
+  gather(`11/08/2016`:`05/16/2006`, key = ELECTION, value = VOTED) %>%
+  #add AGE
+  mutate(BIRTH_DATE.x = mdy(BIRTH_DATE.x)) %>%
+  mutate(AGE = 2017-year(BIRTH_DATE.x)) %>%
+  #recode VOTED
+  mutate(VOTED = ifelse(VOTED == "-", NA, VOTED)) %>%
+  mutate(VOTED = ifelse(VOTED == "YES", 1, 0), VOTED = as.factor(VOTED)) %>%
+  #recode PARTY_CODE
+  mutate(PARTY_CODE = ifelse(PARTY_CODE %in% c("REP","DEM","NAV"),
+                  PARTY_CODE, "OTHER")) %>%
+  mutate(PARTY_CODE = as.factor(PARTY_CODE))
+
+```
+```{r test train, include=T}
+#partition data set
+set.seed(21)
+train_indices <- sample(1:nrow(voter_tidy), size = 9768, replace = FALSE)
+train_voter <- slice(voter_tidy, train_indices)
+test_voter  <- slice(voter_tidy, -train_indices)
+```
+### Model 1: VOTE ~ AGE
+```{r model 1, include=T}
+#fit model 1 to full data set
+m1 <- glm(VOTED ~ AGE, data = voter_tidy, family = binomial)
+
+#fit model 1 to training set
+m1_t <- glm(VOTED ~ AGE, data = train_voter, family = binomial)
+
+#predict values for test set
+y1 <- predict(m1_t, newdata = test_voter, type = "response")
+test_voter <- test_voter %>%
+  mutate(p_hat1 = y1,
+         pred_m1 = p_hat1 > .5)
+
+#form confusion matrix
+confusion_mat1 <- test_voter %>%
+  group_by(VOTED, pred_m1) %>%
+  tally()
+confusion_mat1
+
+#find miscalculation rate
+false_pos <- confusion_mat1[2, 3]
+false_neg <- confusion_mat1[3, 3]
+total_obs <- nrow(test_voter)
+mcr1 <- (false_pos + false_neg)/total_obs
+mcr1
+```
+### Model 2: vote ~ age + party
+```{r model 2, include=T}
+#fit model 2 to full data set
+m2 <- glm(VOTED ~ AGE + PARTY_CODE, data = voter_tidy, family = binomial)
+
+#fit model 2 to training set
+m2_t <- glm(VOTED ~ AGE + PARTY_CODE, data = train_voter, family = binomial)
+
+#predicting variables
+y2 <- predict(m2_t, newdata = test_voter, type = "response")
+test_voter <- test_voter %>%
+  mutate(p_hat2 = y2,
+         pred_m2 = p_hat2 > .5)
+
+#form confusion matrix
+confusion_mat2 <- test_voter %>%
+  group_by(VOTED, pred_m2) %>%
+  tally()
+confusion_mat2
+
+#find miscalculation rate
+false_pos <- confusion_mat2[2, 3]
+false_neg <- confusion_mat2[3, 3]
+total_obs <- nrow(test_voter)
+mcr2 <- (false_pos + false_neg)/total_obs
+mcr2
+```
+
+### Model 3: vote ~ age + party + county
+```{r model 3, include=T}
+#fit model 3 to full data set
+m3 <- glm(VOTED ~ AGE + PARTY_CODE + COUNTY.x, data = voter_tidy, family = binomial)
+
+#fit model 3 to training set
+m3_t <- glm(VOTED ~ AGE + PARTY_CODE + COUNTY.x, data = train_voter, family = binomial)
+
+#predicting variables
+y3 <- predict(m3_t, newdata = test_voter, type = "response")
+
+test_voter <- test_voter %>%
+  mutate(p_hat3 = y3,
+         pred_m3 = p_hat3 > .5)
+
+#form confusion matrix
+confusion_mat3 <- test_voter %>%
+  group_by(VOTED, pred_m3) %>%
+  tally()
+confusion_mat3
+
+#find miscalculation rate
+false_pos <- confusion_mat3[2, 3]
+false_neg <- confusion_mat3[3, 3]
+total_obs <- nrow(test_voter)
+mcr3 <- (false_pos + false_neg)/total_obs
+mcr3
+```
+
+### Model 4: vote ~ age + I(age^2)
+``` {r fit model 4, include=T}
+#fitt model 4 to full data set
+m4 <- glm(VOTED ~ AGE + I(AGE^2), data = voter_tidy, family = binomial)
+
+#fit model 4 to training set
+m4_t <- glm(VOTED ~ AGE + I(AGE^2), data = train_voter, family = binomial)
+
+#predicting variables
+y4 <- predict(m4_t, newdata = test_voter, type = "response")
+
+test_voter <- test_voter %>%
+  mutate(p_hat4 = y4,
+         pred_m4 = p_hat4 > .5)
+
+#form confusion matrix
+confusion_mat4 <- test_voter %>%
+  group_by(VOTED, pred_m4) %>%
+  tally()
+confusion_mat4
+
+#find miscalculation rate
+false_pos <- confusion_mat4[2, 3]
+false_neg <- confusion_mat4[3, 3]
+total_obs <- nrow(test_voter)
+mcr4 <- (false_pos + false_neg)/total_obs
+mcr4
+```
+### Results
+```{r Results 1, include=T}
+broom::tidy(m1)
+```
+The coefficient estimate on `AGE` in model 1 is 0.0353, i.e. a one year increase in age corresponds with a 0.0353 increase in probability that voters would vote. This estimate is statistically significant with a p-value of 0.
+```{r Results 2, include=T}
+broom::tidy(m2)
+```
+The coefficient estimate on `AGE` in model 2 is 0.0328. Holding all other explanatory variables constant, model 2 predicts that a one year increase in age corresponds with a 0.0328 increase in probability that voters would vote.This estimate is statistically significant with a p-value of 0.
+
+In comparison to voters affiliated with the Democratic Party, holding age constant, voters affiliated with the Republican Party are 6.89% less likely to vote, while non-affiliated voters are 6.42% less likely to vote. This means that voters affiliated with the Democratic Party are the most likely to vote out of the four groups, while non-affiliated voters are the least likely to vote. 
+```{r Results 3, include=T}
+broom::tidy(m3)
+```
+The coefficient estimate on `AGE` in model 3 is 0.0328. Holding all other explanatory variables constant, model 3 predicts that a one year increase in age corresponds with a 0.0328 increase in probability that voters would vote.This estimate is statistically significant with a p-value of 0. Besides Wallowa County and Umatilla County, coefficient estimates on other counties hover around 0. This means that compared to Baker County, turnout in other counties are not drastically different. The coefficient on Wallowa County is 0.351, i.e. compared to Baker County, voters are 35.1% more likely to vote. The coefficient on Umatilla County is -0.336, i.e. compared to Baker County, voters are 33.6% less likely to vote.
+```{r Results 4, include=T}
+broom::tidy(m4)
+```
+The coefficient estimate on `AGE` in model 4 is `3.94*10^-2`. Holding all other explanatory variables constant, model 3 predicts that a one year increase in age corresponds with a `3.94*10^-2` increase in probability that voters would vote. The coefficient estimate on `AGE^2` is `-3.649*10^5` which implies that the positive relationship between `AGE` and `VOTED` diminishes as `AGE` increase. Both estimates are statistically significant with a p-value of 0.
+```{r Results Misclassification, include=T}
+misclass <- matrix(c( 0.1652689,0.1622896,0.1632686,0.1647955), ncol=1, byrow=T)
+colnames(misclass) <- c("Misclassification Rate")
+rownames(misclass) <- c("Model 1", "Model 2", "Model 3", "Model 4")
+misclass <- as.table(misclass)
+misclass
+```
+As shown in the above table, the misclassification rates for the 4 models are really similar, i.e. each model is just as accurate/inacurrate as the rest. Model 2 has the lowest misclassification rate, while Model 1 has the highest misclassification rate.
