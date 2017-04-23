@@ -3,6 +3,14 @@ hw\_1\_wrangle.Rmd
 Kammy Chiu
 February 14, 2017
 
+### Motivating Question
+
+I'm interested in looking at how motor voter registration in Oregon has influenced the number of new registrations affiliated with different parties in 2016. I'm particularly interested in learning which party gained the most number of new registrations over the course of 2016. My first plot will compare such trends across parties.
+
+In order to further gauge the impact of auto-registration on the number of registrations, I'd also like to see whether the number of auto-registrations surpassed the number of regular registrations at any point in 2016. My second plot will compare the number of auto-registrations vs regular registrations.
+
+Note that I am limited to data from 2016 since the Motor Voter Registration Act only came into effect in Jan 2016.
+
 ``` r
 #load data
 vote_reg <- read_csv("http://bit.ly/2kG37yJ")
@@ -64,14 +72,6 @@ vote_2016 <- select(vote_joined, VOTER_ID, reg_year, reg_month, PARTY_CODE, desc
 MV_2016 <- filter(vote_2016, is.na(description) == FALSE)
 ```
 
-### Motivating Question
-
-I'm interested in looking at how motor voter registration has influenced the number of new registrations affiliated with different parties in 2016. I'm particularly interested in learning which party gained the most number of new registrations over the course of 2016. My first plot will compare such trends across parties.
-
-In order to further gauge the impact of auto-registration on the number of registrations, I'd also like to see whether the number of auto-registrations surpassed the number of regular registrations at any point in 2016. My second plot will compare the number of auto-registrations vs regular registrations.
-
-Note that I am limited to data from 2016 since the Motor Voter Registration Act only came into effect in Jan 2016.
-
 ``` r
 #first plot
 ggplot(MV_2016, aes(x = reg_month, y = cnt, col = PARTY_CODE)) +
@@ -83,7 +83,9 @@ ggplot(MV_2016, aes(x = reg_month, y = cnt, col = PARTY_CODE)) +
   ggtitle("Number of Motor Voter Registrations by Party in 2016")
 ```
 
-![](hw_1_wrangle_files/figure-markdown_github/voter%20participation-1.png)
+![](hw_1_wrangle_files/figure-markdown_github/voter%20participation-1.png) This plot clearly shows that the Oregon Motor Voter (OMV) Act increased the number of registrations the most for the non-affiliated voter (NAV) group across all months in 2016. This might have something to with the process of collecting data on party affiliation. After a motor voter registers at the DMV, the voter receives a postcard that asks for their party affiliation. If the voter does not respond to the postcard in time, the voter's party affiliation defaults on NAV. Given that there are costs (e.g. time) associated with returning the post card, voters who are in fact affiliated with a certain party may not be incentivized to declare their party affiliation, which means that they get "incorrectly" lumped into the NAV category.
+
+The biggest winner (in receiving the most number of MV registrations) is the Democratic Party (DEM), closely followed by the Republican Party (REP). The similarity in trends between the DEM and REP lines the suggest that data on party affiliation may be collected and processed in certain months of the year.
 
 ``` r
 #second plot
@@ -97,9 +99,9 @@ ggplot(vote_2016, aes(x = reg_month, y = cnt, col = description)) +
   facet_wrap( ~ PARTY_CODE, ncol = 1)
 ```
 
-![](hw_1_wrangle_files/figure-markdown_github/voter%20participation-2.png)
+![](hw_1_wrangle_files/figure-markdown_github/unnamed-chunk-1-1.png) The number of non-MV registrations is consistently higher than the number of MV registrations across all parties, except for the NAV group. It's interesting that the trends in the number of MV registrations for Jun-Dec follow that of the number of non-MV registrations closely across all three parties. That might have to do with campaigning efforts leading up to the presidential election that promoted MV-registrations, or it might again have to do with the timing of which data on party affiliation are collected and processed.
 
-### Variables
+### Identifying Types of Variables
 
 First Plot:
 
@@ -119,7 +121,7 @@ Second Plot:
 
 4.  Type of registration - Motor Voter vs Non-motor voter (categorical)
 
-### Visual Cues
+### Explaining Visual Cues
 
 Position: I decided to map the months of 2016 on to x-values for both plots because time is usually displayed on the x-axis in a time-series plot. I mapped the number of motor voter registrations on to y-values, then log-transformed the y-values such that a large range can be displayed without small values being compressed at the bottom of the graphs. Although we lose resolution on the actual counts of motor voter registrations, the log transformation allows us to compare line plots across parties and find out who gained the most comparatively.
 
@@ -140,11 +142,3 @@ I used line plots instead of scatter plots because lines allow for easier compar
 2.  I decided to plot the total number of motor voter registrations per month against time, instead of total number of motor voter registrations per day against time to avoid over-plotting.
 
 3.  For the second plot, I stacked the four plots on top of on another in a single column so that the axes are readable on a page.
-
-### Results
-
-First Plot: This plot clearly shows that the Oregon Motor Voter (OMV) Act increased the number of registrations the most for the non-affiliated voter (NAV) group across all months in 2016. This might have something to with the process of collecting data on party affiliation. After a motor voter registers at the DMV, the voter receives a postcard that asks for their party affiliation. If the voter does not respond to the postcard in time, the voter's party affiliation defaults on NAV. Given that there are costs (e.g. time) associated with returning the post card, voters who are in fact affiliated with a certain party may not be incentivized to declare their party affiliation, which means that they get "incorrectly" lumped into the NAV category.
-
-The biggest winner (in receiving the most number of MV registrations) is the Democratic Party (DEM), closely followed by the Republican Party (REP). The similarity in trends between the DEM and REP lines the suggest that data on party affiliation may be collected and processed in certain months of the year.
-
-Second Plot: The number of non-MV registrations is consistently higher than the number of MV registrations across all parties, except for the NAV group. It's interesting that the trends in the number of MV registrations for Jun-Dec follow that of the number of non-MV registrations closely across all three parties. That might have to do with campaigning efforts leading up to the presidential election that promoted MV-registrations, or it might again have to do with the timing of which data on party affiliation are collected and processed.
