@@ -58,6 +58,7 @@ ggplot(MV_2016, aes(x = reg_month, y = cnt, col = PARTY_CODE)) +
   labs(col = "Party Affiliation") +
   ggtitle("Number of Motor Voter Registrations by Party in 2016")
 ```
+
 This plot clearly shows that the Oregon Motor Voter (OMV) Act increased the number of registrations the most for the non-affiliated voter (NAV) group across all months in 2016. This might have something to with the process of collecting data on party affiliation. After a motor voter registers at the DMV, the voter receives a postcard that asks for their party affiliation. If the voter does not respond to the postcard in time, the voter's party affiliation defaults on NAV. Given that there are costs (e.g. time) associated with returning the post card, voters who are in fact affiliated with a certain party may not be incentivized to declare their party affiliation, which means that they get "incorrectly" lumped into the NAV category.
 
 The biggest winner (in receiving the most number of MV registrations) is the Democratic Party (DEM), closely followed by the Republican Party (REP). The similarity in trends between the DEM and REP lines the suggest that data on party affiliation may be collected and processed in certain months of the year.
@@ -73,6 +74,7 @@ ggplot(vote_2016, aes(x = reg_month, y = cnt, col = description)) +
   facet_wrap( ~ PARTY_CODE, ncol = 1)
 
 ```
+
 The number of non-MV registrations is consistently higher than the number of MV registrations across all parties, except for the NAV group. It's interesting that the trends in the number of MV registrations for Jun-Dec follow that of the number of non-MV registrations closely across all three parties. That might have to do with campaigning efforts leading up to the presidential election that promoted MV-registrations, or it might again have to do with the timing of which data on party affiliation are collected and processed.
 
 ###  Identifying Types of Variables
