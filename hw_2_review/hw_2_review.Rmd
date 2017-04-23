@@ -1,0 +1,122 @@
+---
+title: "hw_2_review"
+author: "Kammy Chiu"
+date: "February 24, 2017"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(tidyverse)
+#library(ggplot2)
+#install.packages("mosaicData")
+#install.packages("babynames")
+#install.packages("Lahman")
+#install.packages("mosaicData", repos = "http://cran.rstudio.org")
+library(mosaicData)
+library(Lahman)
+library(babynames)
+```
+### 3.1
+Create a scatterplot of each person's height against their father's height:
+```{r, include=TRUE}
+height <- ggplot(Galton, aes(x = father, y = height)) +
+  geom_point() +
+  geom_jitter()
+height
+```
+
+Separate your plot into facets by sex:
+```{r, include=TRUE}
+facet_height <- height + facet_wrap(~sex)
+facet_height
+```
+
+Add regression lines to all of your facets:
+```{r, include=TRUE}
+reg_height <- facet_height + geom_smooth(method = "lm", se = F)
+reg_height
+```
+
+### 3.2
+Create a scatterplot of the number of crossings per day volume against the high temperature that day:
+```{r, include=TRUE}
+crossings <- ggplot(RailTrail, aes(x = hightemp, y = volume)) +
+  geom_point() +
+  geom_jitter()
+crossings
+```
+
+Separate your plots into facets by weekday:
+```{r, include=TRUE}
+facet_crossings <- crossings + facet_wrap(~weekday)
+facet_crossings
+```
+
+Add regression lines to the two facets:
+```{r, include=TRUE}
+reg_crossings <- facet_crossings + geom_smooth(method = "lm", se = F)
+reg_crossings
+```
+
+### 4.8
+Define two new variables in the Teams data frame from the Lahman package: batting average (BA) and slugging percentage (SLG). Batting average is the ratio of hits (H) to at-bats (AB), and slugging percentage is total bases divided by at-bats.
+```{r, include=TRUE}
+Teams_BA_SLG <- Teams %>%
+  mutate(BA = H / AB,
+         SLG = (H + X2B + X3B*2 + HR*3) / AB)
+```
+
+### 4.9
+Plot a time series of SLG since 1954 conditioned by lgID. Is slugging percentage typically higher in the American League (AL) or the National League (NL)? Can you think of why this might be the case?
+```{r, include=TRUE}
+Teams_BA_SLG %>%
+  filter(yearID >= 1954) %>%
+  ggplot(aes(x = yearID, y = SLG)) +
+  geom_line(aes(col = lgID), alpha = .3) +
+  geom_smooth(method = "lm", aes(color = lgID), se = F)
+
+```  
+
+Slugging percentage is typically higher in the AL than in the NL. Since slugging percentage is total bases divided by at-bats, the AL may have a higher slugging percentage due to a smaller at-bats number, or a higher number of total bases, or both. According to Wikipedia the AL adopted the "Designated Hitter" (DH) rule in 1973. The DH bats in place of the pitcher, so the number of at bats would be lower for the AL.
+
+### 4.10
+Display the top 15 teams ranked in terms of slugging percentage in MLB history.
+```{r, include=TRUE}
+top15 <- Teams_BA_SLG %>%
+  arrange(desc(SLG)) %>%
+  slice(1:15) %>%
+  select(yearID, name, SLG)
+
+top15
+```
+Repeat this using teams since 1969.
+
+```{r, include = TRUE}
+top15_1969 <- Teams_BA_SLG %>%
+  filter(yearID >= 1969) %>%
+  arrange(desc(SLG)) %>%
+  slice(1:15) %>%
+  select(yearID, name, SLG)
+
+top15_1969
+```
+
+### 4.11
+The Angels have at times been called the California Angels (CAL), the Anaheim Angels (ANA), and the Los Angeles Angels of Anaheim (LAA). Find the 10 most successful seasons in Angels history.
+```{r, include=TRUE}
+Angels <- c("CAL", "ANA", "LAA")
+Angels_wins <- Teams_BA_SLG %>%
+  filter(teamID %in% Angels) %>%
+  mutate(WP = W/G) %>%
+  select(teamID, WP, WSWin, W, yearID) %>%
+  arrange(desc(WP, W)) %>%
+  slice(1:10)
+
+Angels_wins
+
+```
+
+Have they ever won the World Series?
+
+Yes, in 2002.
