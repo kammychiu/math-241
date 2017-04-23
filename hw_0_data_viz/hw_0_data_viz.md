@@ -104,4 +104,4 @@ I decided to use points for my scatter plot because I'm interested in looking at
 
 ### Thoughts
 
-This data exploration excercise shows that party affiliation and age may be powerful explantory variables that explain voter participation trends in a regression analysis.
+This data exploration exercise shows that party affiliation and age may be powerful explanatory variables that explain voter participation trends in a regression analysis.

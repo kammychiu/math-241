@@ -91,4 +91,4 @@ I decided to use points for my scatter plot because I'm interested in looking at
 3. I stacked the four plots on top of on another in a single column so that the x-axis wouldn't be squished.
 
 ###  Thoughts
-This data exploration excercise shows that party affiliation and age may be powerful explantory variables that explain voter participation trends in a regression analysis.
+This data exploration exercise shows that party affiliation and age may be powerful explanatory variables that explain voter participation trends in a regression analysis.
